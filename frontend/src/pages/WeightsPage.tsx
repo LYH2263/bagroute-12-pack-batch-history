@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-type W = { bag_id: number; bag_index: number; route_id: number; weight_kg: number; volume_l: number; fill_weight_pct: number; fill_volume_pct: number };
+import type { Batch } from "../components/BatchSelect";
+type W = { bag_id: number; batch_id: number; bag_index: number; route_id: number; weight_kg: number; volume_l: number; fill_weight_pct: number; fill_volume_pct: number };
 export default function WeightsPage() {
   const [rows, setRows] = useState<W[]>([]);
-  useEffect(() => { api<W[]>("/weights").then(setRows); }, []);
+  const [latest, setLatest] = useState<Batch | null>(null);
+  useEffect(() => {
+    api<W[]>("/weights").then(setRows).catch(() => setRows([]));
+    api<Batch[]>("/batches").then((b) => setLatest(b[0] ?? null)).catch(() => {});
+  }, []);
   return (<>
     <h2>袋重</h2>
+    <div className="toolbar">
+      {latest
+        ? <span className="mono">仅展示最新批次 #{latest.id}</span>
+        : <span className="mono">尚无批次</span>}
+    </div>
     <table className="table"><thead><tr><th>袋</th><th>路线</th><th>重量</th><th>重量填充</th><th>体积填充</th></tr></thead>
     <tbody>{rows.map(w => <tr key={w.bag_id}><td>{w.bag_index}</td><td>{w.route_id}</td><td className="mono">{w.weight_kg}kg</td>
       <td><div className="fill"><span style={{ width: `${Math.min(100, w.fill_weight_pct)}%` }} /></div><span className="mono">{w.fill_weight_pct}%</span></td>
       <td><div className="fill"><span style={{ width: `${Math.min(100, w.fill_volume_pct)}%` }} /></div><span className="mono">{w.fill_volume_pct}%</span></td>
-    </tr>)}</tbody></table>
+    </tr>)}
+      {!rows.length && <tr><td colSpan={5}>最新批次暂无袋</td></tr>}
+    </tbody></table>
   </>);
 }

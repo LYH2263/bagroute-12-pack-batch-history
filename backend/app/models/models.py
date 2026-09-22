@@ -26,14 +26,26 @@ class SubscriberStop(Base):
     route: Mapped[DeliveryRoute] = relationship(back_populates="stops")
 
 
+class PackBatch(Base):
+    """一次成功装袋产生一个批次；历史批次的袋与拒收永久保留。"""
+
+    __tablename__ = "pack_batches"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    bags: Mapped[list["PackBag"]] = relationship(back_populates="batch")
+
+
 class PackBag(Base):
     __tablename__ = "pack_bags"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    batch_id: Mapped[int] = mapped_column(ForeignKey("pack_batches.id"))
     route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
     bag_index: Mapped[int] = mapped_column(Integer)
     weight_kg: Mapped[float] = mapped_column(Float)
     volume_l: Mapped[float] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    batch: Mapped[PackBatch] = relationship(back_populates="bags")
     items: Mapped[list["BagItem"]] = relationship(back_populates="bag")
 
 
@@ -51,6 +63,7 @@ class BagItem(Base):
 class RejectRecord(Base):
     __tablename__ = "reject_records"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    batch_id: Mapped[int | None] = mapped_column(ForeignKey("pack_batches.id"), nullable=True)
     route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
     stop_id: Mapped[int] = mapped_column(Integer)
     stop_name: Mapped[str] = mapped_column(String(80))

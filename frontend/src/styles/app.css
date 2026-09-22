@@ -214,6 +214,8 @@ a { color: inherit; text-decoration: none; }
 
 h2 { margin: 0 0 .85rem; font-size: 1.15rem; color: var(--route-leaf); }
 .toolbar { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+.batch-pick { display: flex; align-items: center; gap: .4rem; font-size: .85rem; color: var(--route-muted); }
+.batch-pick select { min-width: 16rem; }
 select, input, button {
   background: var(--panel); color: var(--text); border: 1px solid var(--line);
   border-radius: 6px; padding: .5rem .75rem; font: inherit;

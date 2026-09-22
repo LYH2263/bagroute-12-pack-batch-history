@@ -20,6 +20,15 @@ class StopOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class BatchOut(BaseModel):
+    id: int
+    route_id: int
+    bag_count: int
+    reject_count: int
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
 class BagItemOut(BaseModel):
     stop_id: int
     stop_name: str
@@ -29,6 +38,7 @@ class BagItemOut(BaseModel):
 
 class BagOut(BaseModel):
     id: int
+    batch_id: int
     route_id: int
     bag_index: int
     weight_kg: float
@@ -39,6 +49,7 @@ class BagOut(BaseModel):
 
 class RejectOut(BaseModel):
     id: int
+    batch_id: int | None = None
     route_id: int
     stop_id: int
     stop_name: str
@@ -51,8 +62,17 @@ class PackRequest(BaseModel):
     route_id: int
 
 
+class PackResponse(BaseModel):
+    batch_id: int
+    route_id: int
+    bag_count: int
+    reject_count: int
+    bags: list[BagOut]
+
+
 class WeightOut(BaseModel):
     bag_id: int
+    batch_id: int
     bag_index: int
     route_id: int
     weight_kg: float
