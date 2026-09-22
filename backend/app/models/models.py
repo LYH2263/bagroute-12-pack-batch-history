@@ -26,10 +26,21 @@ class SubscriberStop(Base):
     route: Mapped[DeliveryRoute] = relationship(back_populates="stops")
 
 
+class PackBatch(Base):
+    """One successful pack run. Old batches are retained for history."""
+
+    __tablename__ = "pack_batches"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
+    batch_no: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class PackBag(Base):
     __tablename__ = "pack_bags"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
+    batch_id: Mapped[int] = mapped_column(ForeignKey("pack_batches.id"))
     bag_index: Mapped[int] = mapped_column(Integer)
     weight_kg: Mapped[float] = mapped_column(Float)
     volume_l: Mapped[float] = mapped_column(Float)
@@ -52,6 +63,7 @@ class RejectRecord(Base):
     __tablename__ = "reject_records"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     route_id: Mapped[int] = mapped_column(ForeignKey("delivery_routes.id"))
+    batch_id: Mapped[int] = mapped_column(ForeignKey("pack_batches.id"))
     stop_id: Mapped[int] = mapped_column(Integer)
     stop_name: Mapped[str] = mapped_column(String(80))
     reason: Mapped[str] = mapped_column(String(200))

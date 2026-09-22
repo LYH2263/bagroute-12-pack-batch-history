@@ -2,18 +2,21 @@ import { useEffect, useState } from "react";
 import { api } from "../api/client";
 type R = { id: number; name: string };
 type Bag = { id: number; bag_index: number; weight_kg: number; volume_l: number; items: { stop_name: string }[] };
+type PackResult = { batch_id: number; batch_no: number; bags: Bag[] };
 export default function PackPage() {
   const [routes, setRoutes] = useState<R[]>([]);
   const [rid, setRid] = useState<number | "">("");
   const [bags, setBags] = useState<Bag[]>([]);
+  const [batchNo, setBatchNo] = useState<number | null>(null);
   const [msg, setMsg] = useState(""); const [err, setErr] = useState("");
   useEffect(() => { api<R[]>("/routes").then(r => { setRoutes(r); if (r[0]) setRid(r[0].id); }); }, []);
   async function run() {
     setMsg(""); setErr("");
     try {
-      const out = await api<Bag[]>("/pack", { method: "POST", body: JSON.stringify({ route_id: rid }) });
-      setBags(out);
-      setMsg(`完成装袋：${out.length} 袋`);
+      const out = await api<PackResult>("/pack", { method: "POST", body: JSON.stringify({ route_id: rid }) });
+      setBags(out.bags);
+      setBatchNo(out.batch_no);
+      setMsg(`完成装袋：批次 ${out.batch_no}，共 ${out.bags.length} 袋`);
     } catch (e) { setErr(e instanceof Error ? e.message : String(e)); }
   }
   return (<>
@@ -22,7 +25,7 @@ export default function PackPage() {
       <select value={rid} onChange={e => setRid(Number(e.target.value))}>{routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
       <button onClick={run}>按路线顺序双约束装袋</button>
     </div>
-    {msg && <div className="ok">{msg}</div>}
+    {msg && <div className="ok">{msg}{batchNo !== null && <span className="batch-tag">批次号 {batchNo}</span>}</div>}
     {err && <div className="err">{err}</div>}
     {bags.map(b => (
       <div key={b.id}>
